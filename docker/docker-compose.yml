@@ -1,0 +1,48 @@
+services:
+  php8:
+    build: ./
+    container_name: "dev-pheaker"
+    volumes:
+      - ../unitask:/var/www/html
+      - ./apache:/etc/apache2/sites-available
+      - ./apache/custom_apache.conf:/usr/local/apache2/conf/custom_apache.conf # Corrigido: Montar apenas o arquivo
+    ports:
+      - 8000:8000
+      - 80:80
+      - 443:443
+    networks:
+      - rededocker
+    restart: always
+    command:
+      - bash
+      - "-c"
+      - |
+        a2enmod rewrite &&
+        a2enmod headers &&
+        apache2-foreground
+    depends_on:
+      - postgres
+    links:
+      - postgres
+    environment:
+      - APACHE_SERVERNAME=localhost
+
+  postgres:
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    networks:
+      - rededocker
+    container_name: "postgresDB"
+    environment:
+      POSTGRES_DB: unitaskdb
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+
+networks:
+  rededocker:
+    external: true
+    name: rededocker

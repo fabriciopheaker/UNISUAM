@@ -1,0 +1,18 @@
+#HABILITAR REWRITE_MODULE
+Editar etc/apache2/apache2.conf
+
+# Adicionar no arquivo apache2.conf  
+ServerName localhost
+
+cd v2-renew/.docker
+docker-compose exec php8 /bin/bash
+a2enmod rewrite
+service apache2 restart  # ou systemctl restart apache2
+
+
+# Se der error 500 ao subir o container e tentar acessar localhost:
+
+docker-compose exec php8 a2enmod headers
+service apache2 restart 
+
+
