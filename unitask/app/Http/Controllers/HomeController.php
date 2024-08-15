@@ -4,21 +4,21 @@ namespace App\Http\Controllers;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class HomeController extends Controller
 {
 
 
 
-    public function home(): View
+    public function index()
     {
-        return View('welcome');
+        return Inertia::render('app');
     }
 
 
     public function getUser($User)
     {
-
-        print_r($User);
+        return Inertia::render('HomeUsers');
     }
 }

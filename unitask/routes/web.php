@@ -5,5 +5,5 @@ use App\Http\Controllers\HomeController;
 
 
 
-Route::get('/', [HomeController::class, 'home']);
+Route::get('/', [HomeController::class, 'index']);
 Route::get('/{USER}', [HomeController::class, 'getUser']);
