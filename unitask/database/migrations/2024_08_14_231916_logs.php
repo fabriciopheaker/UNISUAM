@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('Logs', function (Blueprint $table) {
-            $table->id('ID_LOG');
-            $table->string('NOME');
-            $table->string('IP_REQUEST');
-            $table->string('REQUEST');
+            $table->bigIncrements('ID_LOG');
+            $table->string('NOME', 50);
+            $table->string('IP_REQUEST', 50);
+            $table->string('REQUEST', 150);
             $table->json('RESPONSE');
             $table->timestamps();
         });

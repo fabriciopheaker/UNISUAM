@@ -8,12 +8,13 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use stdClass;
 
 class HomeController extends Controller
 {
+
+
 
 
 
@@ -23,14 +24,24 @@ class HomeController extends Controller
     }
 
 
-    public function show($User)
+    public function show(Request $request, string $User)
     {
-        // 404 - 200
+        $ipAddress = $request->ip();
+        $nomeGit = $this->validator($User);
+
+        if (! $nomeGit) {
+            $response = $this->objectResponse('Error', 'Nome de usuário não encontrado');
+            return response()->json($response);
+        }
+
         $github = Http::get("https://api.github.com/users/$User");
 
         if ($github->status() != 200) {
-            // codigo de error
+            $response = $this->objectResponse('Error', 'Usuário não encontrado ou problemas no servidor');
+            return response()->json($response);
         }
+
+
         $github = $github->object();
         $githubData = new UserResource($github);
         $githubData = $githubData->toArray(request());
@@ -40,12 +51,17 @@ class HomeController extends Controller
         ]);
     }
 
-    public function getfollowers($User): JsonResponse
+    public function getfollowers(Request $request, string $User): JsonResponse
     {
+
+        $ipAddress = $request->ip();
+
+
+
 
         $github = Http::get("https://api.github.com/users/$User/followers");
         if ($github->status() != 200) {
-            // codigo de error
+            return response()->json();
         }
         $github = $github->object();
         $githubData = FollowersResource::collection($github);
@@ -54,7 +70,7 @@ class HomeController extends Controller
         return response()->json($githubData);
     }
 
-    public function getfollowing($User): JsonResponse
+    public function getfollowing(Request $request, string $User): JsonResponse
     {
 
         $github = Http::get("https://api.github.com/users/$User/following");
@@ -69,13 +85,19 @@ class HomeController extends Controller
     }
 
 
-
-
-    public function validator($param): bool
+    public function validator(string $param): bool
     {
         if (!isset($param) && empty($param)) {
             return false;
         }
         return true;
+    }
+
+    public function objectResponse(String $status, String $message): object
+    {
+        $obj = new stdClass();
+        $obj->Status =  $status;
+        $obj->Message = $message;
+        return $obj;
     }
 }
