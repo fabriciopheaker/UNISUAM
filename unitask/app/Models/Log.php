@@ -9,6 +9,7 @@ class Log extends Model
 {
     use HasFactory;
     protected $table = 'Logs';
+    protected $primaryKey = 'ID_LOG';
     protected $fillable = ['NOME', 'IP_REQUEST', 'REQUEST', 'RESPONSE'];
 
 

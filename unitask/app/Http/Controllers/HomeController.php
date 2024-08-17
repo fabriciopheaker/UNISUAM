@@ -4,19 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\FollowersResource;
 use App\Http\Resources\UserResource;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use PhpParser\Node\Expr\FuncCall;
 use stdClass;
 
 class HomeController extends Controller
 {
 
-
-
-
+    public function __construct(private LogController $log) {}
 
     public function index()
     {
@@ -27,70 +26,89 @@ class HomeController extends Controller
     public function show(Request $request, string $User)
     {
         $ipAddress = $request->ip();
-        $nomeGit = $this->validator($User);
-
-        if (! $nomeGit) {
-            $response = $this->objectResponse('Error', 'Nome de usuário não encontrado');
-            return response()->json($response);
-        }
-
         $github = Http::get("https://api.github.com/users/$User");
 
+
+        // quando tiver error no github ou não existir usuario
         if ($github->status() != 200) {
-            $response = $this->objectResponse('Error', 'Usuário não encontrado ou problemas no servidor');
+            $response = $this->objectResponse('Error', 'Whoops Aconteceu algum error');
+            $dadosLog = $this->processData($User, $ipAddress, $request->url(), json_encode($response));
+            $this->log->store($dadosLog);
             return response()->json($response);
         }
 
 
+        //transforma em objeto
         $github = $github->object();
-        $githubData = new UserResource($github);
-        $githubData = $githubData->toArray(request());
 
+        //tratamento do response
+        $github = new UserResource($github);
+        $github = $github->toArray(request());
+
+        // trata e registra log
+        $dadosLog = $this->processData($User, $ipAddress, $request->url(), json_encode($github));
+        $this->log->store($dadosLog);
+
+        // return view/component vue
         return Inertia::render('HomeUsers', [
-            'User' => $githubData
+            'User' => $github
         ]);
     }
 
+
+
+
     public function getfollowers(Request $request, string $User): JsonResponse
     {
-
         $ipAddress = $request->ip();
-
-
-
-
         $github = Http::get("https://api.github.com/users/$User/followers");
-        if ($github->status() != 200) {
-            return response()->json();
-        }
-        $github = $github->object();
-        $githubData = FollowersResource::collection($github);
-        $githubData = $githubData->toArray(request());
 
-        return response()->json($githubData);
+        // quando tiver error no github ou não existir usuario
+        if ($github->status() != 200) {
+            $response = $this->objectResponse('Error', 'Whoops Aconteceu algum error');
+            $dadosLog = $this->processData($User, $ipAddress, $request->url(), json_encode($response));
+            $this->log->store($dadosLog);
+            return response()->json($response);
+        }
+
+
+        //transforma em objeto
+        $github = $github->object();
+        //tratamento do response
+        $github = FollowersResource::collection($github);
+        $github = $github->toArray(request());
+
+        // trata e registra log
+        $dadosLog = $this->processData($User, $ipAddress, $request->url(), json_encode($github));
+        $this->log->store($dadosLog);
+
+
+        return response()->json($github);
     }
 
     public function getfollowing(Request $request, string $User): JsonResponse
     {
-
+        $ipAddress = $request->ip();
         $github = Http::get("https://api.github.com/users/$User/following");
+
         if ($github->status() != 200) {
-            // codigo de error
+            $response = $this->objectResponse('Error', 'Whoops Aconteceu algum error');
+            $dadosLog = $this->processData($User, $ipAddress, $request->url(), json_encode($response));
+            $this->log->store($dadosLog);
+            return response()->json($response);
         }
+        //transforma em objeto
         $github = $github->object();
-        $githubData = FollowersResource::collection($github);
-        $githubData = $githubData->toArray(request());
+        //tratamento do response
+        $github = FollowersResource::collection($github);
+        $github = $github->toArray(request());
 
-        return response()->json($githubData);
-    }
+        // trata e registra log
+        $dadosLog = $this->processData($User, $ipAddress, $request->url(), json_encode($github));
+        $this->log->store($dadosLog);
 
 
-    public function validator(string $param): bool
-    {
-        if (!isset($param) && empty($param)) {
-            return false;
-        }
-        return true;
+        return response()->json($github);
     }
 
     public function objectResponse(String $status, String $message): object
@@ -99,5 +117,15 @@ class HomeController extends Controller
         $obj->Status =  $status;
         $obj->Message = $message;
         return $obj;
+    }
+
+    public function processData($nome, $ip, $request, $githubResponse): array
+    {
+        return [
+            'NOME' => $nome,
+            'IP_REQUEST' => $ip,
+            'REQUEST' => $request,
+            'RESPONSE' => $githubResponse,
+        ];
     }
 }
