@@ -8,7 +8,7 @@
         </div>
         <div class="modal-body">
           <div v-if="usuarios.length > 0">
-            <input type="text" v-model="searchQuery" class="form-control" placeholder="Pesquisar..." />
+            <input type="text" v-model="pesquisa" class="form-control" placeholder="Pesquisar..." />
             <table class="table">
               <thead>
                 <tr>
@@ -28,6 +28,10 @@
               </tbody>
             </table>
           </div>
+          <div v-else-if="typeof usuarios === 'boolean' && !usuarios">
+            <h3>Sem Seguidores</h3>
+          </div>
+
           <div v-else>
             <div class="d-flex justify-content-center">
               <div class="spinner-border" role="status">
@@ -61,8 +65,7 @@ export default {
       required: true,
     },
     usuarios: {
-      type: Array,
-      default: () => [],
+      type: [Array, Boolean],
       required: true
     }
   },

@@ -107,7 +107,7 @@ export default {
       const URL = location.href;
       axios.get(`${URL}/followers`)
         .then(response => {
-          this.usuarios = response.data;
+          this.usuarios = response.data.length > 0 ? response.data : false;
         })
         .catch(error => {
           console.error(error);
@@ -118,7 +118,7 @@ export default {
       const URL = location.href;
       axios.get(`${URL}/following`)
         .then(response => {
-          this.usuarios = response.data;
+          this.usuarios = response.data.length > 0 ? response.data : false;
         })
         .catch(error => {
           console.error(error);
