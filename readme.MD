@@ -31,6 +31,8 @@ Para rodar o projeto deve seguir esses passos abaixo:
 #### Acessar o container
 
 cd docker
+docker-compose build
+docker-compose up -d
 docker-compose exec -it php8 bash
 
 #### Instalar as dependencias
